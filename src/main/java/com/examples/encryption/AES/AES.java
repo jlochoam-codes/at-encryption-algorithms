@@ -1,40 +1,43 @@
 package com.examples.encryption.AES;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
+@Slf4j
 public class AES {
 
     private static final int KEY_SIZE = 128; // In bits
     private static final int GCM_IV_LEN = 12; // In bytes
     private static final int GCM_TAG_LEN = 16; // In bytes
     private static final String ALGORITHM = "AES/GCM/NoPadding";
-    private static final String FILES_PATH = "src/main/resources/static/";
+    public static final String FILES_PATH = "src/main/resources/static/";
 
-    public static SecretKey generateKey() throws NoSuchAlgorithmException {
+    public static void generateKey() throws
+            IOException,
+            NoSuchAlgorithmException {
+
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(KEY_SIZE);
         SecretKey key = keyGenerator.generateKey();
-        try (
-                FileOutputStream keyFileStream = new FileOutputStream(
-                        FILES_PATH + "keyFile.txt"
-                )
-        ) {
-            keyFileStream.write((key.getEncoded()));
-        }
-        catch(Exception e) {
-            System.out.println("Key file could not be created.");
-        }
-        return key;
+        BufferedWriter keyFileWriter = Files.newBufferedWriter(
+                Paths.get(FILES_PATH + "keyFile.txt"));
+        keyFileWriter.write(Base64.getEncoder().encodeToString(key.getEncoded()));
+        keyFileWriter.close();
+
     }
 
-    public static byte[] encrypt(String input, SecretKey key)
+    public static byte[] encrypt(String plainText)
             throws IOException,
             NoSuchPaddingException,
             NoSuchAlgorithmException,
@@ -43,27 +46,35 @@ public class AES {
             BadPaddingException,
             IllegalBlockSizeException {
 
+        BufferedReader keyFileReader = Files.newBufferedReader(
+                Paths.get(FILES_PATH + "keyFile.txt"));
+        byte[] keyBytes = Base64.getDecoder().decode(keyFileReader.readLine());
+        keyFileReader.close();
+        SecretKeySpec key = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
+
         byte[] iv = new byte[GCM_IV_LEN];
         new SecureRandom().nextBytes(iv);
 
         Cipher cipher = Cipher.getInstance(ALGORITHM);
-        SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "AES");
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LEN * 8, iv);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmParameterSpec);
-        byte[] cipherOutput = cipher.doFinal(input.getBytes());
+        cipher.init(Cipher.ENCRYPT_MODE, key, gcmParameterSpec);
+        byte[] cipherOutput = cipher.doFinal(plainText.getBytes());
 
 
         // The IV is attached to the beginning of the ciphertext.
-        ByteArrayOutputStream cipherText = new ByteArrayOutputStream();
-        cipherText.write(iv);
-        cipherText.write(cipherOutput);
+        ByteArrayOutputStream cipherTextStream = new ByteArrayOutputStream();
+        cipherTextStream.write(iv);
+        cipherTextStream.write(cipherOutput);
 
-        return cipherText.toByteArray();
+        byte[] cipherTextBytes = cipherTextStream.toByteArray();
+        cipherTextStream.close();
+        return cipherTextBytes;
 
     }
 
-    public static String decrypt(byte[] cipherText, SecretKey key)
-            throws NoSuchPaddingException,
+    public static String decrypt(byte[] encryptedBytes)
+            throws IOException,
+            NoSuchPaddingException,
             NoSuchAlgorithmException,
             InvalidAlgorithmParameterException,
             InvalidKeyException,
@@ -71,15 +82,21 @@ public class AES {
             IllegalBlockSizeException {
 
         Cipher cipher = Cipher.getInstance(ALGORITHM);
-        SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "AES");
+
+        BufferedReader keyFileReader = Files.newBufferedReader(
+                Paths.get(FILES_PATH + "keyFile.txt"));
+        byte[] keyBytes = Base64.getDecoder().decode(keyFileReader.readLine());
+        keyFileReader.close();
+        SecretKeySpec key = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
 
         // We take the IV out of the ciphertext
         byte[] iv = new byte[GCM_IV_LEN];
-        System.arraycopy(cipherText, 0, iv, 0, GCM_IV_LEN);
-        System.arraycopy(cipherText, GCM_IV_LEN, cipherText, 0, cipherText.length);
+        System.arraycopy(encryptedBytes, 0, iv, 0, iv.length);
+        byte[] cipherText = new byte[encryptedBytes.length - GCM_IV_LEN];
+        System.arraycopy(encryptedBytes, GCM_IV_LEN, cipherText, 0, cipherText.length);
 
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LEN * 8, iv);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
+        cipher.init(Cipher.DECRYPT_MODE, key, gcmParameterSpec);
         byte[] decryptedText = cipher.doFinal(cipherText);
         return new String(decryptedText);
 
