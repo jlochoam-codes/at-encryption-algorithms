@@ -7,65 +7,67 @@ import javax.crypto.spec.DESKeySpec;
 import java.io.*;
 
 public class DES {
-    public static void main(String [] args)
-    {
 
-        String comando1 = "-c";
-        String comando2 = "-d";
+    public static final String FILES_PATH = "src/main/resources/static/";
 
-        //COMANDO 1 o COMANDO 2
-        if ((comando1.equals(args[0]))||(comando2.equals(args[0]))){
+    public static void generateKey(String [] args) throws Exception{
+
+        String comand1 = "-c";
+        String comand2 = "-d";
+
+        //COMAND 1 o COMAND 2
+        if ((comand1.equals(args[0]))||(comand2.equals(args[0]))){
             //leer clave por teclado
             try{
-                InputStreamReader leer_clave = new InputStreamReader(System.in);
-                BufferedReader buff_clave = new BufferedReader(leer_clave);
-                System.out.print("Escriba una clave: ");
-                String clave = buff_clave.readLine();
+                InputStreamReader read_key = new InputStreamReader(System.in);
+                BufferedReader buff_key = new BufferedReader(read_key);
+                System.out.print("Write a key: ");
+                String key = buff_key.readLine();
 
                 //pasar clave a la clase SecretKey
                 try{
                     SecretKeyFactory skf = SecretKeyFactory.getInstance("DES");
-                    DESKeySpec kspec = new DESKeySpec(clave.getBytes());
+                    DESKeySpec kspec = new DESKeySpec(key.getBytes());
                     SecretKey ks = skf.generateSecret(kspec);
 
                     //Inicializar el cifrado
                     try{
-                        Cipher cifrado = Cipher.getInstance("DES");
+                        Cipher encryption = Cipher.getInstance("DES");
 
                         //Escojo modo cifrado o descifrado segun sea el caso
 
-                        if (comando1.equals(args[0])){
-                            cifrado.init(Cipher.ENCRYPT_MODE, ks);}//MODO CIFRAR
-                        if (comando2.equals(args[0])){
-                            cifrado.init(Cipher.DECRYPT_MODE, ks);}//MODO DESCIFRAR
+                        if (comand1.equals(args[0])){
+                            encryption.init(Cipher.ENCRYPT_MODE, ks);}//MODO CIFRAR
+                        if (comand2.equals(args[0])){
+                            encryption.init(Cipher.DECRYPT_MODE, ks);}//MODO DESCIFRAR
 
 
                         //Leer fichero
 
-                        InputStream archivo = new FileInputStream( args[1] );
+                        InputStream file = new FileInputStream( args[1] );
                         OutputStream fich_out = new FileOutputStream ( args[2] );
 
                         byte[] buffer = new byte[1024];
                         byte[] bloque_cifrado;
-                        String textoCifrado = new String();
-                        int fin_archivo = -1;
-                        int leidos;//numero de bytes leidos
+                        String textCrypted = new String();
+                        int fin_file = -1;
+                        int read;//numero de bytes leidos
 
-                        leidos = archivo.read(buffer);
+                        read = file.read(buffer);
 
-                        while( leidos != fin_archivo ) {
-                            bloque_cifrado = cifrado.update(buffer,0,leidos);
-                            textoCifrado = textoCifrado + new String(bloque_cifrado,"ISO-8859-1");
-                            leidos = archivo.read(buffer);
+                        while( read != fin_file ) {
+                            bloque_cifrado = encryption.update(buffer,0,read);
+                            textCrypted = textCrypted + new String(bloque_cifrado,"ISO-8859-1");
+                            read = file.read(buffer);
                         }
 
-                        archivo.close();
+                        file.close();
 
-                        bloque_cifrado = cifrado.doFinal();
-                        textoCifrado = textoCifrado + new String(bloque_cifrado,"ISO-8859-1");
+                        bloque_cifrado = encryption.doFinal();
+                        textCrypted = textCrypted + new String(bloque_cifrado,"ISO-8859-1");
                         //ISO-8859-1 es ISO-Latin-1
 
-                        fich_out.write(textoCifrado.getBytes("ISO-8859-1"));//escribir fichero
+                        fich_out.write(textCrypted.getBytes("ISO-8859-1"));//escribir fichero
 
                     }
                     //Inicializacion de cifrado
