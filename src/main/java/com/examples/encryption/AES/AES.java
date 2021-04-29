@@ -21,7 +21,7 @@ public class AES {
     private static final int GCM_IV_LEN = 12; // In bytes
     private static final int GCM_TAG_LEN = 16; // In bytes
     private static final String ALGORITHM = "AES/GCM/NoPadding";
-    public static final String FILES_PATH = "src/main/resources/static/";
+    public static final String FILES_PATH = "src/main/resources/static/AES/";
 
     public static void generateKey() throws
             IOException,
