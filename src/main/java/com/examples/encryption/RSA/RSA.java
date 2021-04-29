@@ -1,6 +1,7 @@
 package com.examples.encryption.RSA;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.security.*;
@@ -11,9 +12,9 @@ import java.security.spec.X509EncodedKeySpec;
 public class RSA {
 
     public static Cipher rsa;
+    private static final String ALGORITHM = "RSA/ECB/PKCS1Padding";
 
-    public static void main(String[] args) throws Exception {
-
+    public static SecretKey generateKey() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         PublicKey publicKey = keyPair.getPublic();
@@ -25,23 +26,25 @@ public class RSA {
         saveKey(privateKey, "privatekey.dat");
         privateKey = loadPrivateKey("privatekey.dat");
 
-        rsa = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        rsa = Cipher.getInstance(ALGORITHM);
 
         String text = "Text to encrypt";
 
         rsa.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] encriptado = rsa.doFinal(text.getBytes());
+        byte[] encrypted = rsa.doFinal(text.getBytes());
 
-        for (byte b : encriptado) {
+        for (byte b : encrypted) {
             System.out.print(Integer.toHexString(0xFF & b));
         }
         System.out.println();
 
         rsa.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] bytesDesencriptados = rsa.doFinal(encriptado);
-        String textoDesencripado = new String(bytesDesencriptados);
+        byte[] bytesDecrypted = rsa.doFinal(encrypted);
+        String textDecrypt = new String(bytesDecrypted);
 
-        System.out.println(textoDesencripado);
+        System.out.println(textDecrypt);
+
+        return ;
     }
 
     public static PublicKey loadPublicKey(String fileName) throws Exception {
