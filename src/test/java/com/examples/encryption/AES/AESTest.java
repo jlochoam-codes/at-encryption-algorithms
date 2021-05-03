@@ -15,6 +15,8 @@ public class AESTest {
     private static final String PLAIN_TEXT_1 = "You should be able to read me flawlessly";
     private static final String PLAIN_TEXT_2 = "You should be able to read me flawlessly.";
 
+    private static final String PLAIN_TEXT_3 ="blanca se la come entera";
+
     @Test
     public void test1_AesKeyGeneration() {
 
@@ -70,6 +72,26 @@ public class AESTest {
                             Paths.get(AES.FILES_PATH + "decryptedText2.txt"));
                     decryptedText2FileWriter.write(decryptedText2);
                     decryptedText2FileWriter.close();
+
+                    byte[] cipherText3 = AES.encrypt(PLAIN_TEXT_3);
+                    BufferedWriter cipherText3FileWriter = Files.newBufferedWriter(
+                            Paths.get(AES.FILES_PATH + "cipherText3.txt"));
+                    cipherText3FileWriter.write(Base64.getEncoder().encodeToString(
+                            cipherText3));
+                    cipherText3FileWriter.close();
+
+                    // Stage 2: Decrypt the cipher text obtained from stage 1.
+                    BufferedReader cipherText3FileReader = Files.newBufferedReader(
+                            Paths.get(AES.FILES_PATH + "cipherText3.txt"));
+                    byte[] cipherText3FromFile = Base64.getDecoder().decode(
+                            cipherText3FileReader.readLine());
+                    cipherText3FileReader.close();
+                    String decryptedText3 = AES.decrypt(cipherText3FromFile);
+                    BufferedWriter decryptedText3FileWriter = Files.newBufferedWriter(
+                            Paths.get(AES.FILES_PATH + "decryptedText3.txt"));
+                    decryptedText3FileWriter.write(decryptedText3);
+                    decryptedText3FileWriter.close();
+
                 }
         );
 
