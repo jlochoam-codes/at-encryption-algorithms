@@ -32,7 +32,6 @@ public class RSATest {
 
         assertDoesNotThrow(
                 () -> {
-                    // Stage 1: Encrypt a string of plain text.
                     byte[] cipherText1 = RSA.encrypt(PLAIN_TEXT_1);
                     BufferedWriter cipherText1FileWriter = Files.newBufferedWriter(
                             Paths.get(RSA.FILES_PATH + "cipherText1.txt"));
@@ -40,7 +39,6 @@ public class RSATest {
                             cipherText1));
                     cipherText1FileWriter.close();
 
-                    // Stage 2: Decrypt the cipher text obtained from stage 1.
                     BufferedReader cipherText1FileReader = Files.newBufferedReader(
                             Paths.get(RSA.FILES_PATH + "cipherText1.txt"));
                     byte[] cipherText1FromFile = Base64.getDecoder().decode(
@@ -52,10 +50,6 @@ public class RSATest {
                     decryptedText1FileWriter.write(decryptedText1);
                     decryptedText1FileWriter.close();
 
-                    // Stages 1 and 2 will be repeated with PLAIN_TEXT_2, which only
-                    // differs from PLAIN_TEXT_1 by 1 character. This is to evaluate
-                    // the quality of the cipher considering small changes in the
-                    // plain text should still provide quite different cipher texts.
                     byte[] cipherText2 = RSA.encrypt(PLAIN_TEXT_2);
                     BufferedWriter cipherText2FileWriter = Files.newBufferedWriter(
                             Paths.get(RSA.FILES_PATH + "cipherText2.txt"));
