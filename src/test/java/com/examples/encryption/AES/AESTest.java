@@ -16,13 +16,19 @@ public class AESTest {
     private static final String PLAIN_TEXT_2 = "You should be able to read me flawlessly.";
 
     @Test
-    public void testAesImplementation() {
+    public void test1_AesKeyGeneration() {
+
+        assertDoesNotThrow(
+                AES::generateKey
+        );
+
+    }
+
+    @Test
+    public void test2_AesImplementation() {
 
         assertDoesNotThrow(
                 () -> {
-                    // Stage 0: Generate the encryption key (only done when necessary).
-                    AES.generateKey();
-
                     // Stage 1: Encrypt a string of plain text.
                     byte[] cipherText1 = AES.encrypt(PLAIN_TEXT_1);
                     BufferedWriter cipherText1FileWriter = Files.newBufferedWriter(
